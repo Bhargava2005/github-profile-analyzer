@@ -1,0 +1,182 @@
+{
+  "info": {
+    "_postman_id": "github-profile-analyzer-v1",
+    "name": "GitHub Profile Analyzer API",
+    "description": "A collection of API endpoints for the GitHub Profile Analyzer service. Fetches GitHub user data, computes insights, and stores them in MySQL.\n\n**Base URL**: `{{base_url}}`\n\n**Setup**: Set the `base_url` variable to your server URL (e.g., `http://localhost:3000`).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:3000",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/health",
+          "host": ["{{base_url}}"],
+          "path": ["api", "health"]
+        },
+        "description": "Check if the API server is running properly."
+      },
+      "response": [
+        {
+          "name": "Success",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"message\": \"GitHub Profile Analyzer API is running\",\n  \"timestamp\": \"2024-01-01T00:00:00.000Z\",\n  \"version\": \"1.0.0\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Analyze GitHub Profile",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/analyze/torvalds",
+          "host": ["{{base_url}}"],
+          "path": ["api", "analyze", "torvalds"]
+        },
+        "description": "Fetches the GitHub profile data for the specified username, computes insights (total stars, forks, most used language, top repos), and stores or updates the record in MySQL. Re-running this endpoint on the same username refreshes the stored data."
+      },
+      "response": [
+        {
+          "name": "Success - Profile Analyzed",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"message\": \"Profile for 'torvalds' analyzed and stored successfully\",\n  \"data\": {\n    \"id\": 1,\n    \"username\": \"torvalds\",\n    \"name\": \"Linus Torvalds\",\n    \"bio\": null,\n    \"location\": \"Portland, OR\",\n    \"email\": null,\n    \"blog\": null,\n    \"company\": \"Linux Foundation\",\n    \"avatar_url\": \"https://avatars.githubusercontent.com/u/1024025?v=4\",\n    \"github_url\": \"https://github.com/torvalds\",\n    \"public_repos\": 7,\n    \"public_gists\": 0,\n    \"followers\": 230000,\n    \"following\": 0,\n    \"total_stars\": 190000,\n    \"total_forks\": 55000,\n    \"most_used_language\": \"C\",\n    \"top_repos\": [\n      {\n        \"name\": \"linux\",\n        \"description\": \"Linux kernel source tree\",\n        \"url\": \"https://github.com/torvalds/linux\",\n        \"stars\": 185000,\n        \"forks\": 52000,\n        \"language\": \"C\",\n        \"topics\": []\n      }\n    ],\n    \"account_created_at\": \"2011-09-03T15:26:22.000Z\",\n    \"last_analyzed_at\": \"2024-01-01T00:00:00.000Z\",\n    \"created_at\": \"2024-01-01T00:00:00.000Z\"\n  }\n}"
+        },
+        {
+          "name": "Error - User Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\n  \"success\": false,\n  \"message\": \"GitHub user 'nonexistent_user_xyz' not found\"\n}"
+        },
+        {
+          "name": "Error - Rate Limit",
+          "status": "Too Many Requests",
+          "code": 429,
+          "body": "{\n  \"success\": false,\n  \"message\": \"GitHub API rate limit exceeded. Provide a GITHUB_TOKEN in .env to increase limits.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Analyze Profile - octocat",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/analyze/octocat",
+          "host": ["{{base_url}}"],
+          "path": ["api", "analyze", "octocat"]
+        },
+        "description": "Analyze GitHub's official octocat demo account."
+      },
+      "response": []
+    },
+    {
+      "name": "Get All Profiles",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/profiles?page=1&limit=10&sort_by=followers&order=desc",
+          "host": ["{{base_url}}"],
+          "path": ["api", "profiles"],
+          "query": [
+            {
+              "key": "page",
+              "value": "1",
+              "description": "Page number (default: 1)"
+            },
+            {
+              "key": "limit",
+              "value": "10",
+              "description": "Results per page (default: 10, max: 100)"
+            },
+            {
+              "key": "sort_by",
+              "value": "followers",
+              "description": "Sort field: followers | total_stars | public_repos | last_analyzed_at | created_at"
+            },
+            {
+              "key": "order",
+              "value": "desc",
+              "description": "Sort order: asc | desc"
+            }
+          ]
+        },
+        "description": "Retrieve all analyzed GitHub profiles with pagination and sorting support. Returns a summary view (no top_repos JSON for brevity)."
+      },
+      "response": [
+        {
+          "name": "Success - Profile List",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": 1,\n      \"username\": \"torvalds\",\n      \"name\": \"Linus Torvalds\",\n      \"bio\": null,\n      \"location\": \"Portland, OR\",\n      \"avatar_url\": \"https://avatars.githubusercontent.com/u/1024025?v=4\",\n      \"github_url\": \"https://github.com/torvalds\",\n      \"public_repos\": 7,\n      \"followers\": 230000,\n      \"following\": 0,\n      \"total_stars\": 190000,\n      \"total_forks\": 55000,\n      \"most_used_language\": \"C\",\n      \"last_analyzed_at\": \"2024-01-01T00:00:00.000Z\",\n      \"created_at\": \"2024-01-01T00:00:00.000Z\"\n    }\n  ],\n  \"pagination\": {\n    \"total\": 1,\n    \"page\": 1,\n    \"limit\": 10,\n    \"total_pages\": 1\n  }\n}"
+        }
+      ]
+    },
+    {
+      "name": "Get Single Profile",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/profiles/torvalds",
+          "host": ["{{base_url}}"],
+          "path": ["api", "profiles", "torvalds"]
+        },
+        "description": "Retrieve the full stored insights for a specific GitHub username. Returns the complete record including top_repos JSON."
+      },
+      "response": [
+        {
+          "name": "Success - Profile Found",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": 1,\n    \"username\": \"torvalds\",\n    \"name\": \"Linus Torvalds\",\n    \"bio\": null,\n    \"location\": \"Portland, OR\",\n    \"email\": null,\n    \"blog\": null,\n    \"company\": \"Linux Foundation\",\n    \"avatar_url\": \"https://avatars.githubusercontent.com/u/1024025?v=4\",\n    \"github_url\": \"https://github.com/torvalds\",\n    \"public_repos\": 7,\n    \"public_gists\": 0,\n    \"followers\": 230000,\n    \"following\": 0,\n    \"total_stars\": 190000,\n    \"total_forks\": 55000,\n    \"most_used_language\": \"C\",\n    \"top_repos\": [\n      {\n        \"name\": \"linux\",\n        \"description\": \"Linux kernel source tree\",\n        \"url\": \"https://github.com/torvalds/linux\",\n        \"stars\": 185000,\n        \"forks\": 52000,\n        \"language\": \"C\",\n        \"topics\": []\n      }\n    ],\n    \"account_created_at\": \"2011-09-03T15:26:22.000Z\",\n    \"last_analyzed_at\": \"2024-01-01T00:00:00.000Z\",\n    \"created_at\": \"2024-01-01T00:00:00.000Z\"\n  }\n}"
+        },
+        {
+          "name": "Error - Profile Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\n  \"success\": false,\n  \"message\": \"Profile for 'unknown' not found. Use POST /api/analyze/unknown to analyze it first.\"\n}"
+        }
+      ]
+    },
+    {
+      "name": "Delete Profile",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{base_url}}/api/profiles/torvalds",
+          "host": ["{{base_url}}"],
+          "path": ["api", "profiles", "torvalds"]
+        },
+        "description": "Delete a stored GitHub profile from the database by username."
+      },
+      "response": [
+        {
+          "name": "Success - Deleted",
+          "status": "OK",
+          "code": 200,
+          "body": "{\n  \"success\": true,\n  \"message\": \"Profile for 'torvalds' deleted successfully\"\n}"
+        },
+        {
+          "name": "Error - Not Found",
+          "status": "Not Found",
+          "code": 404,
+          "body": "{\n  \"success\": false,\n  \"message\": \"Profile for 'torvalds' not found\"\n}"
+        }
+      ]
+    }
+  ]
+}
