@@ -1,7 +1,5 @@
 const mysql = require("mysql2/promise");
 
-const isRailway = !!process.env.RAILWAY_ENVIRONMENT;
-
 const poolConfig = {
   host: process.env.DB_HOST || "localhost",
   port: parseInt(process.env.DB_PORT) || 3306,
@@ -14,11 +12,8 @@ const poolConfig = {
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
   connectTimeout: 20000,
+  ssl: process.env.DB_SSL === "true" ? { rejectUnauthorized: false } : false,
 };
-
-if (isRailway) {
-  poolConfig.ssl = { rejectUnauthorized: false };
-}
 
 const pool = mysql.createPool(poolConfig);
 
@@ -54,7 +49,7 @@ const initializeDatabase = async () => {
     console.log("Database table initialized successfully");
   } catch (error) {
     console.error("Failed to initialize database table:", error.code, error.message);
-    console.error("DB Config used → host:", process.env.DB_HOST, "port:", process.env.DB_PORT, "db:", process.env.DB_NAME, "user:", process.env.DB_USER);
+    console.error("DB Config → host:", process.env.DB_HOST, "port:", process.env.DB_PORT, "db:", process.env.DB_NAME, "user:", process.env.DB_USER, "ssl:", process.env.DB_SSL);
     throw error;
   }
 };

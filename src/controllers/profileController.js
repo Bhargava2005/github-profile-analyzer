@@ -122,14 +122,13 @@ const getAllProfiles = async (req, res, next) => {
       "SELECT COUNT(*) as total FROM github_profiles"
     );
 
-    const [rows] = await pool.execute(
+    const [rows] = await pool.query(
       `SELECT id, username, name, bio, location, avatar_url, github_url,
               public_repos, followers, following, total_stars, total_forks,
               most_used_language, last_analyzed_at, created_at
        FROM github_profiles
        ORDER BY ${sortBy} ${order}
-       LIMIT ? OFFSET ?`,
-      [limit, offset]
+       LIMIT ${limit} OFFSET ${offset}`
     );
 
     return res.status(200).json({
