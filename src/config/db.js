@@ -1,8 +1,10 @@
 const mysql = require("mysql2/promise");
 
-const pool = mysql.createPool({
+const isRailway = !!process.env.RAILWAY_ENVIRONMENT;
+
+const poolConfig = {
   host: process.env.DB_HOST || "localhost",
-  port: process.env.DB_PORT || 3306,
+  port: parseInt(process.env.DB_PORT) || 3306,
   user: process.env.DB_USER || "root",
   password: process.env.DB_PASSWORD || "",
   database: process.env.DB_NAME || "github_analyzer",
@@ -11,7 +13,14 @@ const pool = mysql.createPool({
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,
-});
+  connectTimeout: 20000,
+};
+
+if (isRailway) {
+  poolConfig.ssl = { rejectUnauthorized: false };
+}
+
+const pool = mysql.createPool(poolConfig);
 
 const initializeDatabase = async () => {
   const createTableQuery = `
@@ -44,7 +53,8 @@ const initializeDatabase = async () => {
     await pool.execute(createTableQuery);
     console.log("Database table initialized successfully");
   } catch (error) {
-    console.error("Failed to initialize database table:", error.message);
+    console.error("Failed to initialize database table:", error.code, error.message);
+    console.error("DB Config used → host:", process.env.DB_HOST, "port:", process.env.DB_PORT, "db:", process.env.DB_NAME, "user:", process.env.DB_USER);
     throw error;
   }
 };
